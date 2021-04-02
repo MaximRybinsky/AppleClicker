@@ -10,7 +10,7 @@ class SettingsK {
         //settings vars
         var volume = 1f
         var sound_volume = 1f
-        var if_draw_debug_info : Boolean = false
+        var if_draw_debug_info : Boolean = true
         var fps = 100f
 
         private var fileSaveName : String = "settings.zm"

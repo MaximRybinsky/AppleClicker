@@ -8,17 +8,23 @@ import kotlin.math.abs
 
 class OpenWorldGame(game : GameK) : ScreenK(game) {
     // engine vars
-    private var startTime : Float = System.nanoTime() / 1000000000.0f
+    // autosafe vars
     private var stTime : Float = System.nanoTime() / 1000000000.0f
-    private var currentTime : Float = System.nanoTime() / 1000000000.0f
     private var currTime : Float = System.nanoTime() / 1000000000.0f
+    private var timer = 10
+    // fps vars
+    private var startTime : Float = System.nanoTime() / 1000000000.0f
+    private var currentTime : Float = System.nanoTime() / 1000000000.0f
     private var tickTime = 0f
     private var s_fps = SettingsK.fps
     private val tick : Float = 1/s_fps
     private var fps = 0
     private var fps_temp = fps
-    private var timer = 10
-    private var frame_of_open = 50
+    private var sTime : Float = System.nanoTime() / 1000000000.0f
+    private var cTime : Float = System.nanoTime() / 1000000000.0f
+    private var dfps = 0
+    private var dfps_temp = fps
+    private var frame_of_open = 500
     private var frame_of_change_wood = 0
     // переменные ниже для сохранения статуса нажатия на кнопки, типо удерживается палец на кнопке настроек
     // когда палец отпускается в пределах координат кнопки, срабатывает механизм, см функции touches, TOUCH_UP
@@ -77,6 +83,8 @@ class OpenWorldGame(game : GameK) : ScreenK(game) {
                 startTime = currentTime
                 fps = fps_temp
                 fps_temp = 0
+                dfps = dfps_temp
+                dfps_temp = 0
                 // timer нужен для автосейвов, но пока что ничего не сохраняется, см SettingsK
                 timer--
                 if (timer == 0) {
@@ -142,16 +150,21 @@ class OpenWorldGame(game : GameK) : ScreenK(game) {
         //init graphic variable
         val g : GraphicsK = game.graphics
 
+        dfps_temp++
+
+
         // 3 функции отрисовки для 3 состояний окна: игра, настройки, скиллы
         drawMain(g)
         if (if_settings_open) drawSettings(g)
         if (if_skills_open) drawSkills(g)
 
         if (frame_of_open>0) {
-            g.clean( frame_of_open*5, 0, 0, 0)
+            g.clean( frame_of_open/2, 0, 0, 0)
         }
         //debug_info
         if (SettingsK.if_draw_debug_info) {
+            g.drawText("ups:" + fps.toString(),50f, 50f, 50f, Color.BLACK)
+            g.drawText("fps:" + dfps.toString(), 50f, 150f, 50f, Color.BLACK)
         }
     }
 
