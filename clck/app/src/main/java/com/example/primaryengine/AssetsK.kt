@@ -38,6 +38,9 @@ companion object {
     lateinit var i_stomach : PixmapK //27
     lateinit var skills : PixmapK //28
     lateinit var b_language : PixmapK //29
+    lateinit var redBull : PixmapK // 30
+    lateinit var redBull_off : PixmapK // 31
+    lateinit var x2 : PixmapK // 32
 
     lateinit var goethe : Typeface
 
@@ -83,6 +86,8 @@ companion object {
             27 -> i_stomach
             28 -> skills
             29 -> b_language
+            30 -> redBull
+            31 -> redBull_off
             else -> oneEmptyPixel
         }
     }

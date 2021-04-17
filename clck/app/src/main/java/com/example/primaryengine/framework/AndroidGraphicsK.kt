@@ -86,6 +86,28 @@ class AndroidGraphicsK(override var assets : AssetManager, var frameBuffer : Bit
         paint.alpha = 255
     }
 
+    override fun drawPixmap(pixmap: PixmapK, x: Int, y: Int, width : Int, height : Int, srcX: Int, srcY: Int, srcWidth: Int, srcHeight: Int, rotate_angle : Float, alpha : Int) {
+        var matrix = Matrix()
+        matrix.postRotate(rotate_angle)
+
+        paint.alpha = alpha
+        // Определяем прямоугольную область на изображении
+//        srcRect.left = srcX;
+//        srcRect.top = srcY;
+//        srcRect.right = srcX+srcWidth-1;
+//        srcRect.bottom = srcY+srcHeight-1;
+        // Определяем прямоугольную область на экране
+        dstRect.left = x;
+        dstRect.top = y;
+        dstRect.right = x+width-1;
+        dstRect.bottom= y+height-1;
+
+        var bitmap = Bitmap.createBitmap((pixmap as AndroidPixmapK).bitmap, srcX, srcY, srcWidth, srcHeight, matrix, true)
+        // Берём прямоугольник с изображения и вставляем его в прямоугольник с экрана
+        canvas.drawBitmap(bitmap, null, dstRect, paint);
+        paint.alpha = 255
+    }
+
     override fun drawPixmap(pixmap: PixmapK, x: Int, y: Int, width: Int, height: Int, alpha: Int) {
         var dstRect = Rect(x, y, x+width-1, y+height-1)
         paint.alpha = alpha

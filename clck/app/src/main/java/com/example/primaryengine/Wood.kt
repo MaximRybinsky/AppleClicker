@@ -18,15 +18,11 @@ class Wood (val ID : Int, diff : Float) : Drawing_object() {
             }
             1 -> {
                 HP *= 4
-                srcX = 0
-                srcY = 0
                 srcWidth = 544
                 srcHeight = 638
             }
             2 -> {
                 HP *= 9
-                srcX = 0
-                srcY = 0
                 srcWidth = 544
                 srcHeight = 638
             }
@@ -50,8 +46,6 @@ class Wood (val ID : Int, diff : Float) : Drawing_object() {
                     image = AssetsK.apple
                     image2 = AssetsK.apple_stub
                     exp += 1
-                    srcX = 0
-                    srcY = 0
                     srcWidth = 96
                     srcHeight = 117
                 }
@@ -59,13 +53,64 @@ class Wood (val ID : Int, diff : Float) : Drawing_object() {
                     image = AssetsK.pear
                     image2 = AssetsK.pear_stub
                     exp += 3
-                    srcX = 0
-                    srcY = 0
                     srcWidth = 94
                     srcHeight = 139
+                }
+                // Энергетик
+                -15 -> {
+                    image = AssetsK.redBull
+                    image2 = AssetsK.redBull_off
+                    exp = 150
+                    srcWidth = 149
+                    srcHeight = 170
+                    x = 550
+                    y = 1020
+                    width = 149
+                    height = 170
                 }
             }
         }
 
+    }
+}
+
+class Cloud(ID: Int) : Drawing_object() {
+    var speed = 0
+
+    init {
+        x = 900
+        y = 50 + (Math.random()*300).toInt()
+        width = (184.0f*(0.75 + Math.random()*0.5)).toInt()
+        height = (88.0f*(0.75 + Math.random()*0.5)).toInt()
+        srcWidth = 184
+        srcHeight = 88
+        speed = 1 + (Math.random()*5).toInt()
+
+        when (ID) {
+            1 -> {
+                image = AssetsK.bg_cloud_1
+            }
+            2 -> {
+                image = AssetsK.bg_cloud_2
+            }
+            3 -> {
+                image = AssetsK.bg_cloud_3
+            }
+        }
+    }
+}
+
+class Sun() : Drawing_object() {
+
+    var angle = 0f
+
+    init {
+        image = AssetsK.bg_sun
+        x = 500
+        y = 100
+        width = 144
+        height = 144
+        srcWidth = 144
+        srcHeight = 144
     }
 }

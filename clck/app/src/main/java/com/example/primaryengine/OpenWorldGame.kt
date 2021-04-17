@@ -1,6 +1,7 @@
 package com.example.primaryengine
 
 import android.graphics.Color
+import android.provider.Settings
 import android.util.Log
 import com.example.primaryengine.framework.*
 
@@ -37,8 +38,14 @@ class OpenWorldGame(game : GameK) : ScreenK(game) {
     private var if_touch_leg1 = false
     private var if_touch_leg2 = false
     //gameplay vars
-    //button touchs
-    var ifdmgup = false
+    // Энергетик
+    private var energ = Wood.Fruit(-15, 0f)
+    private var if_energ_touch = false
+    private var energ_boost = 1.0f
+    private var energ_dead_time_const = 60
+    private var energ_dead_time = 0
+    private var energ_timer_const = 15
+    private var energ_timer = 0
     //main hero vars
     private val hero = Hero()
     var diff = 1.0f
@@ -60,6 +67,9 @@ class OpenWorldGame(game : GameK) : ScreenK(game) {
     // переменные для тряски дерева. сохраняют количество пикселов, на которое сдвинется дерево
     var move_x = mutableListOf<Int>()
     var move_y = mutableListOf<Int>()
+    // bg облака и солнце
+    private var clouds = mutableListOf<Cloud>()
+    private var sun = Sun()
 
     init {
         // включается музыка
@@ -113,6 +123,19 @@ class OpenWorldGame(game : GameK) : ScreenK(game) {
                     hero.animation.animations[1].playing = false
                     hero.animation.animations[2].playing = false
                 }
+
+                // Уменьшение таймеров энергетика
+                if (energ_dead_time > 0) {
+                    energ_dead_time--
+                    // Если таймер смерти энергетика кончился, то восстанавливаем энергетик
+                    if (energ_dead_time == 0) energ = Wood.Fruit(-15,0f)
+                }
+                if (energ_timer > 0) energ_timer--
+
+                // генерация облаков
+                if (Math.random()>0.75) {
+                    clouds.add(Cloud((1 + Math.random()*3).toInt()))
+                }
             }
 
 
@@ -134,6 +157,8 @@ class OpenWorldGame(game : GameK) : ScreenK(game) {
                         touches()
                     }
 
+                    //двигаем облака и солнце
+                    move_bg()
                     //настраиваем координаты падающих фруктов
                     droppedFruits()
                     // считаем кадры в анимациях
@@ -179,12 +204,21 @@ class OpenWorldGame(game : GameK) : ScreenK(game) {
         if (SettingsK.if_draw_debug_info) {
             g.drawText("ups:" + fps.toString(),50f, 50f, 50f, Color.BLACK)
             g.drawText("fps:" + dfps.toString(), 50f, 150f, 50f, Color.BLACK)
+            g.drawText("dmg:" + hero.damage, 50f, 250f, 50f, Color.BLACK)
+            g.drawText("hp:" + mainWood.HP + "/" + mainWood.maxHP, 50f, 350f, 50f, Color.BLACK)
+            g.drawText("energ:" + energ_timer + "/" + energ_dead_time, 50f, 450f, 50f, Color.BLACK)
         }
     }
 
     fun drawMain(g : GraphicsK) {
         //draw bg
         g.drawPixmap(AssetsK.background, 0,0,721,1281, 0, 0, 800, 1280)
+        //draw sun
+        g.drawPixmap(sun.image, sun.x, sun.y, sun.width, sun.height, sun.srcX, sun.srcY, sun.srcWidth, sun.srcHeight, sun.angle, sun.alpha)
+        //draw clouds
+        for (cloud in clouds) {
+            g.drawPixmap(cloud.image, cloud.x, cloud.y, cloud.width, cloud.height, cloud.srcX, cloud.srcY, cloud.srcWidth, cloud.srcHeight, cloud.alpha)
+        }
         //draw second wood
         g.drawPixmap(secondWood.image, secondWood.x, secondWood.y, secondWood.width, secondWood.height, secondWood.srcX, secondWood.srcY, secondWood.srcWidth, secondWood.srcHeight, secondWood.alpha)
         //draw second wood fruits
@@ -221,12 +255,16 @@ class OpenWorldGame(game : GameK) : ScreenK(game) {
         for (fruit in endFruits) {
             g.drawPixmap(fruit.image2, fruit.x, fruit.y, fruit.width, fruit.height, fruit.srcX, fruit.srcY, fruit.srcWidth, fruit.srcHeight, fruit.alpha)
         }
-        //draw button
+        //draw settings button
         if (!if_settings_open) {
             g.drawPixmap(AssetsK.b_settings, 50, 1020, 177, 164)
         }else {
             g.drawPixmap(AssetsK.b_settings_off, 50, 1020, 177, 164)
         }
+        //draw energ
+        g.drawPixmap(energ.image, energ.x, energ.y, energ.width, energ.height, energ.srcX, energ.srcY, energ.srcWidth, energ.srcHeight)
+        // draw x2 energ bonus
+        if (energ_timer > 0) g.drawPixmap(AssetsK.x2, 50, 150, 249, 177, 0, 0, 249, 177)
         //draw text
         //exp
         g.drawText(hero.kcal.toString() + " kcal", 250f, 150f, 100f, Color.YELLOW)
@@ -278,8 +316,6 @@ class OpenWorldGame(game : GameK) : ScreenK(game) {
                     // touch main wood
                     if (SupportK.inBounds(touch, mainWood.x, mainWood.y, mainWood.width, mainWood.height)) {
                         ifTouch = true
-
-
                         // Вычисляем смещение
                         move_x.add((Math.random()*20 - 10).toInt())
                         move_y.add((Math.random()*20 - 10).toInt())
@@ -299,17 +335,37 @@ class OpenWorldGame(game : GameK) : ScreenK(game) {
                     if (SupportK.inBounds(touch, 50, 1020, 177, 164)) {
                         if_touch_b_settings = true
                     }
+                    // touch energ
+                    if (SupportK.inBounds(touch, energ.x, energ.y, energ.width, energ.height)) {
+                        if_energ_touch = true
+                    }
                 }
                 touch.TOUCH_UP -> {
-                    // touch up on main wood
+                    // touch up main wood
                     if (ifTouch) if (SupportK.inBounds(touch, mainWood.x, mainWood.y, mainWood.width, mainWood.height)) {
                         damage()
                     }
+                    // touch up settings
                     if (SupportK.inBounds(touch, 50, 1020, 177, 164)) {
                         if (if_touch_b_settings) {
                             if_settings_open = true
                         }
                     }
+                    // touch up energ
+                    if (if_energ_touch) if (SupportK.inBounds(touch, energ.x, energ.y, energ.width, energ.height)) {
+                            if (energ_timer == 0) {
+                                energ_dead_time = energ_dead_time_const
+                                energ_timer = energ_timer_const
+                                AssetsK.soda.play(SettingsK.sound_volume)
+
+                                energ.image = energ.image2
+                                energ.ifDrop = true
+                                energ.vectorX = (-5 + Math.random()*10).toFloat()/4
+                                energ.vectorY = (3 + Math.random()*7).toFloat()/4
+                                hero.kcal += energ.exp
+                            }
+                        }
+                    if_energ_touch = false
                     ifTouch = false
                     if_touch_b_settings = false
                     // stop touching hero
@@ -526,6 +582,10 @@ class OpenWorldGame(game : GameK) : ScreenK(game) {
         }
         // Уменьшает хп
         mainWood.HP = mainWood.HP - hero.damage
+        // Пока таймер энергетика больше
+        if (energ_timer > 0) {
+            mainWood.HP = mainWood.HP - (hero.damage*energ_boost).toInt()
+        }
         // проигрываем случайный звук
         if (Math.random() > 0.5) {
             AssetsK.shake1.play(SettingsK.sound_volume)
@@ -716,6 +776,37 @@ class OpenWorldGame(game : GameK) : ScreenK(game) {
             }
             i++
         }
+
+        if (energ.ifDrop && energ.x in -50..800 && energ.y < 1300) {
+            energ.t_vectorX += energ.vectorX
+            energ.t_vectorY -= energ.vectorY
+
+            if (Math.abs(energ.t_vectorX) > 1) {
+                energ.x += energ.t_vectorX.toInt()
+                energ.t_vectorX -= energ.t_vectorX.toInt()
+            }
+            if (Math.abs(energ.t_vectorY) > 1) {
+                energ.y += energ.t_vectorY.toInt()
+                energ.t_vectorY -= energ.t_vectorY.toInt()
+            }
+
+            energ.vectorY -= 0.03f
+        }
+    }
+
+    private fun move_bg() {
+        var i = 0
+        while (i < clouds.size) {
+            val it = clouds.get(i)
+            it.x -= it.speed
+
+            if (it.x < -260)  {
+                clouds.remove(it)
+                i--
+            }
+            i++
+        }
+        sun.angle++
     }
 
     private fun prepareImages() {

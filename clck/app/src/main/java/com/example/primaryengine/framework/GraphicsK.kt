@@ -24,6 +24,8 @@ interface GraphicsK {
 
     fun drawPixmap(pixmap: PixmapK, x: Int, y: Int, width : Int, height : Int, srcX: Int, srcY: Int, srcWidth: Int, srcHeight: Int, alpha : Int)
 
+    fun drawPixmap(pixmap: PixmapK, x: Int, y: Int, width : Int, height : Int, srcX: Int, srcY: Int, srcWidth: Int, srcHeight: Int, rotate_angle : Float, alpha : Int)
+
     fun drawPixmap(pixmap : PixmapK, x : Int, y : Int, width : Int, height : Int, alpha : Int)
 
     fun drawPixmap(pixmap : PixmapK, x : Int, y : Int, width : Int, height : Int)
