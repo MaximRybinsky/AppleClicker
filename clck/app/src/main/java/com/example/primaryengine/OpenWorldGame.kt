@@ -1,10 +1,8 @@
 package com.example.primaryengine
 
 import android.graphics.Color
-import android.provider.Settings
 import android.util.Log
 import com.example.primaryengine.framework.*
-import kotlin.math.abs
 
 class OpenWorldGame(game : GameK) : ScreenK(game) {
     // engine vars
@@ -20,12 +18,10 @@ class OpenWorldGame(game : GameK) : ScreenK(game) {
     private val tick : Float = 1/s_fps
     private var fps = 0
     private var fps_temp = fps
-    private var sTime : Float = System.nanoTime() / 1000000000.0f
-    private var cTime : Float = System.nanoTime() / 1000000000.0f
     private var dfps = 0
     private var dfps_temp = fps
-    private var frame_of_open = 500
-    private var frame_of_change_wood = 0
+    private var frame_of_open = 50
+    private var frame_of_change_wood = 50
     // переменные ниже для сохранения статуса нажатия на кнопки, типо удерживается палец на кнопке настроек
     // когда палец отпускается в пределах координат кнопки, срабатывает механизм, см функции touches, TOUCH_UP
     private var if_settings_open = false
@@ -56,17 +52,31 @@ class OpenWorldGame(game : GameK) : ScreenK(game) {
     private var mainWood = Wood(0, diff)
     private var mainWoodFruits = mutableListOf<Wood.Fruit>()
     private var ifTouch = false
-    private var ifBite = false
     private var secondWood = Wood(1, diff)
     private var secondWoodFruits = mutableListOf<Wood.Fruit>()
     //graphics vars
     //images
     var for_images = mutableListOf<Drawing_object>()
+    // переменные для тряски дерева. сохраняют количество пикселов, на которое сдвинется дерево
+    var move_x = mutableListOf<Int>()
+    var move_y = mutableListOf<Int>()
 
     init {
         // включается музыка
         AssetsK.SaS_RibbitKing.mediaPlayer.setVolume(SettingsK.volume, SettingsK.volume)
         AssetsK.SaS_RibbitKing.play()
+
+        //main x70y250w600h660 second x630y710w106h116
+        //main x70+(57-566)y250+(57-341)w32h32 second x630+(10-100)y710+(10-60)w7h7
+
+        addFruits(mainWoodFruits, mainWood)
+        mainWoodFruits.forEach {
+
+        }
+        mainWood.x = 70
+        mainWood.y = 250
+        mainWood.width = 600
+        mainWood.height = 660
     }
 
     override fun update(deltaTime: Float) {
@@ -104,19 +114,7 @@ class OpenWorldGame(game : GameK) : ScreenK(game) {
                     hero.animation.animations[2].playing = false
                 }
             }
-            //это для звука фруктов: каждые 0.19 секунд проигрывается звук хруста
-            // т.к. звуков несколько, они проигрываются наугад
-            if (hero.animation.animations[2].playing) {
-                if (currTime - stTime > 0.19) {
-                    currTime = System.nanoTime() / 1000000000.0f
-                    stTime = currTime
-                    if (Math.random()*2 > 1.0) {
-                        AssetsK.crack1.play(SettingsK.sound_volume)
-                    }else {
-                        AssetsK.crack2.play(SettingsK.sound_volume)
-                    }
-                }
-            }
+
 
             if (frame_of_open>0) {
                 frame_of_open--
@@ -126,41 +124,57 @@ class OpenWorldGame(game : GameK) : ScreenK(game) {
                 }else if (if_skills_open) {
                     touches_skills()
                 }else {
+                    // Смена деревьев
                     if (frame_of_change_wood > 0) {
                         changeWood()
+                    }else
+                    // Эти действия недоступны, пока меняеются деревья
+                    {
+                        // вычисляет нажатия на экран
+                        touches()
                     }
-                    //проверяем здоровье main wood
-                    checkHP()
+
                     //настраиваем координаты падающих фруктов
                     droppedFruits()
-                    // вычисляет нажатия на экран
-                    touches()
                     // считаем кадры в анимациях
                     prepareAnimation()
                     // сортирует массив for_image элементов Drawing_object, чтобы был эффект наложения картинок в правильной перспективе
                     prepareImages()
+                    //проверяем здоровье main wood
+                    checkHP()
+
+                    //это для звука фруктов: каждые 0.3 секунд проигрывается звук хруста
+                    // т.к. звуков несколько, они проигрываются наугад
+                    if (hero.animation.animations[2].playing) {
+                        if (currTime - stTime > 0.3) {
+                            currTime = System.nanoTime() / 1000000000.0f
+                            stTime = currTime
+                            if (Math.random() > 0.5) {
+                                AssetsK.crack1.play(SettingsK.sound_volume)
+                            }else {
+                                AssetsK.crack2.play(SettingsK.sound_volume)
+                            }
+                        }
+                    }
                 }
             }
         }
     }
     // рисуем
     override fun present(deltaTime: Float) {
+        // ups counter
+        dfps_temp++
         //  1280 x 720 -- Resolution
         // (alpha << 24) | (red << 16 ) | (green<<8) | blue  \\ARGB to int//
         //init graphic variable
         val g : GraphicsK = game.graphics
-
-        dfps_temp++
-
 
         // 3 функции отрисовки для 3 состояний окна: игра, настройки, скиллы
         drawMain(g)
         if (if_settings_open) drawSettings(g)
         if (if_skills_open) drawSkills(g)
 
-        if (frame_of_open>0) {
-            g.clean( frame_of_open/2, 0, 0, 0)
-        }
+
         //debug_info
         if (SettingsK.if_draw_debug_info) {
             g.drawText("ups:" + fps.toString(),50f, 50f, 50f, Color.BLACK)
@@ -264,6 +278,18 @@ class OpenWorldGame(game : GameK) : ScreenK(game) {
                     // touch main wood
                     if (SupportK.inBounds(touch, mainWood.x, mainWood.y, mainWood.width, mainWood.height)) {
                         ifTouch = true
+
+
+                        // Вычисляем смещение
+                        move_x.add((Math.random()*20 - 10).toInt())
+                        move_y.add((Math.random()*20 - 10).toInt())
+                        // Смещаем
+                        mainWood.x += move_x.last()
+                        mainWood.y += move_y.last()
+                        mainWoodFruits.forEach {
+                            it.x += move_x.last()
+                            it.y += move_y.last()
+                        }
                     }
                     // touch hero
                     if (SupportK.inBounds(touch, hero.x+100, hero.y+90, 250, 200)) {
@@ -276,19 +302,29 @@ class OpenWorldGame(game : GameK) : ScreenK(game) {
                 }
                 touch.TOUCH_UP -> {
                     // touch up on main wood
-                    if (ifTouch)
-                    if (SupportK.inBounds(touch, mainWood.x, mainWood.y, mainWood.width, mainWood.height)) {
-                        ifBite = true
+                    if (ifTouch) if (SupportK.inBounds(touch, mainWood.x, mainWood.y, mainWood.width, mainWood.height)) {
                         damage()
                     }
                     if (SupportK.inBounds(touch, 50, 1020, 177, 164)) {
                         if (if_touch_b_settings) {
                             if_settings_open = true
-                            if_touch_b_settings = false
                         }
                     }
-                    ifdmgup = false
+                    ifTouch = false
+                    if_touch_b_settings = false
+                    // stop touching hero
                     hero.animation.animations[0].playing = false
+                    // Возвращаем исходное положение
+                    while (move_x.size > 0) {
+                        mainWood.x -= move_x.first()
+                        mainWood.y -= move_y.first()
+                        mainWoodFruits.forEach {
+                            it.x -= move_x.first()
+                            it.y -= move_y.first()
+                        }
+                        move_x.removeAt(0)
+                        move_y.removeAt(0)
+                    }
                 }
             }
         }
@@ -394,7 +430,7 @@ class OpenWorldGame(game : GameK) : ScreenK(game) {
                     //arm1
                     if (SupportK.inBounds(touch, 50, 280, 185, 200)) {
                         if (hero.kcal > 999) {
-                            hero.kcal -= 999
+                            hero.kcal -= 1000
                             hero.arm1++
                             hero.damage++
                             if (Math.random()*2 > 1.0) {
@@ -407,7 +443,7 @@ class OpenWorldGame(game : GameK) : ScreenK(game) {
                     //arm2
                     if (SupportK.inBounds(touch, 480, 280, 185, 200)) {
                         if (hero.kcal > 999) {
-                            hero.kcal -= 999
+                            hero.kcal -= 1000
                             hero.arm2++
                             hero.damage++
                             if (Math.random()*2 > 1.0) {
@@ -420,7 +456,7 @@ class OpenWorldGame(game : GameK) : ScreenK(game) {
                     //stomach
                     if (SupportK.inBounds(touch, 265, 481, 185, 200)) {
                         if (hero.kcal > 2999) {
-                            hero.kcal -= 2999
+                            hero.kcal -= 3000
                             hero.stomach++
                             hero.damage += 5
                             if (Math.random()*2 > 1.0) {
@@ -433,7 +469,7 @@ class OpenWorldGame(game : GameK) : ScreenK(game) {
                     //leg1
                     if (SupportK.inBounds(touch, 50, 646, 185, 200)) {
                         if (hero.kcal > 1499) {
-                            hero.kcal -= 1499
+                            hero.kcal -= 1500
                             hero.leg1++
                             hero.damage += 3
                             if (Math.random()*2 > 1.0) {
@@ -446,7 +482,7 @@ class OpenWorldGame(game : GameK) : ScreenK(game) {
                     //leg2
                     if (SupportK.inBounds(touch, 480, 646, 185, 200)) {
                         if (hero.kcal > 1499) {
-                            hero.kcal -= 1499
+                            hero.kcal -= 1500
                             hero.leg2++
                             hero.damage += 3
                             if (Math.random()*2 > 1.0) {
@@ -478,12 +514,19 @@ class OpenWorldGame(game : GameK) : ScreenK(game) {
 
     // дерево получает урон
     private fun damage() {
-        mainWood.HP = mainWood.HP - hero.damage
-        if (mainWood.HP <0) {
-            mainWood.HP = 0
+        // С вероятностью 20% падает один фрукт(первый в списке)
+        if (Math.random()*10 < 2) {
+            var t = mainWoodFruits.first()
+            t.ifDrop = true
+            t.vectorX = (-5 + Math.random()*10).toFloat()/4
+            t.vectorY = (3 + Math.random()*7).toFloat()/4
+            dropWoodFruits.add(t)
+            hero.kcal += t.exp
+            mainWoodFruits.removeAt(0)
         }
-        ifTouch = false
-        ifBite = false
+        // Уменьшает хп
+        mainWood.HP = mainWood.HP - hero.damage
+        // проигрываем случайный звук
         if (Math.random() > 0.5) {
             AssetsK.shake1.play(SettingsK.sound_volume)
         }else {
@@ -492,44 +535,50 @@ class OpenWorldGame(game : GameK) : ScreenK(game) {
     }
 
     private fun checkHP() {
-        if (mainWood.HP == 0 || mainWoodFruits.size == 0) {
+        // Если кончилось HP или фрукты, то ...
+        if (mainWood.HP < 1 || mainWoodFruits.size == 0) {
             diff += 0.05f
             hero.woodsCounter++
-            // дерево погибает
+            // ...дерево погибает
             changeWood()
         }
     }
 
     private fun changeWood() {
         if (frame_of_change_wood == 0) {
-            // сначала устанавливается счетчик кадров на 50. То есть за 50 кадров будет выполнена перестановка деревьев
+            // сначала устанавливается счетчик update на 50. То есть за 50 ups будет выполнена перестановка деревьев
             frame_of_change_wood = 50
             // далее деревья и фрукты меняются
             oldWood = mainWood
             dropAll(mainWoodFruits)
             mainWood = secondWood
-            mainWoodFruits.clear()
+//            mainWoodFruits.clear()
             mainWoodFruits.addAll(secondWoodFruits)
             mainWoodFruits.forEach {
                 // эти значения указываются для масштабирования
-                it.x_original = it.x - (oldWood.x + ((it.x-630)*5.66f).toInt())
+                it.x_original = it.x - (oldWood.x + ((it.x-730)*5.66f).toInt())
                 it.y_original = it.y - (oldWood.y + ((it.y-710)*5.69f).toInt())
             }
             var id = (1+Math.random()*2).toInt()
             secondWood = Wood(id, diff)
-            secondWood.alpha = 0
             secondWoodFruits.clear()
             addFruits(secondWoodFruits, secondWood)
-            secondWoodFruits.forEach {
-                it.alpha = 0
-            }
         }
         //main x70y250w600h660 second x630y710w106h116
         //main x70+(57-566)y250+(57-341)w32h32 second x630+(10-100)y710+(10-60)w7h7
         if (frame_of_change_wood > 0) {
             // тут изменяются координаты, размеры и непрозрачность
-            oldWood.alpha -= 5
-            mainWood.x -= 11
+            oldWood.x -= 13
+            oldWood.y += 9
+            if (frame_of_change_wood > 40) {
+                oldWood.width -= 9
+                oldWood.height -= 10
+            }else {
+                oldWood.width -= 10
+                oldWood.height -= 11
+            }
+
+            mainWood.x -= 13
             mainWood.y -= 9
             if (frame_of_change_wood > 40) {
                 mainWood.width += 9
@@ -546,10 +595,6 @@ class OpenWorldGame(game : GameK) : ScreenK(game) {
                 it.width++
                 it.height++
             }
-            secondWood.alpha += 5
-            secondWoodFruits.forEach {
-                it.alpha += 5
-            }
 
             frame_of_change_wood--
 
@@ -558,21 +603,17 @@ class OpenWorldGame(game : GameK) : ScreenK(game) {
                 mainWood.y -= 10
                 mainWood.width += 4
                 mainWood.height += 4
-                secondWood.alpha += 5
-                secondWoodFruits.forEach {
-                    it.alpha += 5
-                }
             }
         }
     }
 
     private fun addFruits(list : MutableList<Wood.Fruit>, wood : Wood) {
         // добавляет фрукты в список list
-        val count = (5+Math.random()*15).toInt()
+        val count = ((5+Math.random()*15)*diff).toInt()
         for (i in 0..count) {
             list.add(Wood.Fruit(wood.ID, diff))
             list.get(list.lastIndex).let {
-                it.x = 640 + (Math.random()*85).toInt()
+                it.x = 740 + (Math.random()*85).toInt()
                 it.y = 730 + (Math.random()*45).toInt()
             }
         }
@@ -669,11 +710,7 @@ class OpenWorldGame(game : GameK) : ScreenK(game) {
 
             it.vectorY -= 0.03f
 
-            if (it.x > 800)  {
-                endFruits.remove(it)
-                i--
-            }
-            if (it.y > 1300) {
+            if (!(it.x in -100..800) || it.y > 1300)  {
                 endFruits.remove(it)
                 i--
             }

@@ -8,7 +8,7 @@ class Wood (val ID : Int, diff : Float) : Drawing_object() {
         image = AssetsK.tree
         y = 710
         y_original=y
-        x = 630
+        x = 730
         x_original=x
         width = 106
         height = 116
