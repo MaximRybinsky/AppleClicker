@@ -8,6 +8,8 @@ import android.os.Bundle
 import android.view.Display
 import android.view.Window
 import android.view.WindowManager
+import androidx.core.app.ActivityCompat
+import java.util.jar.Manifest
 
 abstract class AndroidGameK : Activity(), GameK {
     // Здесь мы собираем всё необходимое:
@@ -26,7 +28,6 @@ abstract class AndroidGameK : Activity(), GameK {
 
     override fun onCreate(savedInstanceState : Bundle?) {
         super.onCreate(savedInstanceState)
-
         // делаем Во_Весь_Экран
         requestWindowFeature(Window.FEATURE_NO_TITLE)
         window.setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN)
@@ -68,7 +69,6 @@ abstract class AndroidGameK : Activity(), GameK {
     }
 
     override fun setScreen(screen2: ScreenK) { // Устанавливает screen2 в качестве текущего экрана отображения изображения
-        if (screen2 == null) throw IllegalArgumentException("screen2 = null")
         screenn.pause()
         screenn.dispose()
         screen2.resume()

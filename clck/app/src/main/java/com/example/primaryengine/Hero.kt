@@ -6,12 +6,26 @@ class Hero : Drawing_object() {
     var kcal = 0 // Опыт
 
     var arm1 = 1
+    var arm1_cost = 1000
+    var arm1_buff = 1
     var arm2 = 1
+    var arm2_cost = 1000
+    var arm2_buff = 1
     var stomach = 1
+    var stomach_cost = 3000
+    var stomach_buff = 5
     var leg1 = 1
+    var leg1_cost = 1500
+    var leg1_buff = 3
     var leg2 = 1
+    var leg2_cost = 1500
+    var leg2_buff = 3
     var cloth = 1
+    var cloth_cost = 10000
+    var cloth_buff = 15
     var hat = 1
+    var hat_cost = 15000
+    var hat_buff = 20
 
 
     init {

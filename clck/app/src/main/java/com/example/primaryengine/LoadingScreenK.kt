@@ -57,7 +57,6 @@ class LoadingScreenK(game : GameK): ScreenK(game) {
         AssetsK.shake2 = game.audio.newSound("ShakeSound-2.ogg")
         AssetsK.soda = game.audio.newSound("SodaCanSound.ogg")
         AssetsK.SaS_RibbitKing = game.audio.newMusic("[Loop Music] Sand and Slopes - Ribbit King.ogg")
-        SettingsK.load_save(game.fileIO)
         game.screenn = OpenWorldGame(game)
     }
 

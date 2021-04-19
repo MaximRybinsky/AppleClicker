@@ -7,10 +7,8 @@ import com.example.primaryengine.framework.*
 
 class OpenWorldGame(game : GameK) : ScreenK(game) {
     // engine vars
-    // autosafe vars
     private var stTime : Float = System.nanoTime() / 1000000000.0f
     private var currTime : Float = System.nanoTime() / 1000000000.0f
-    private var timer = 10
     // fps vars
     private var startTime : Float = System.nanoTime() / 1000000000.0f
     private var currentTime : Float = System.nanoTime() / 1000000000.0f
@@ -32,6 +30,7 @@ class OpenWorldGame(game : GameK) : ScreenK(game) {
     private var if_touch_sound = false
     private var if_touch_music = false
     private var if_touch_close = false
+    private var if_touch_language = false
     private var if_touch_arm1 = false
     private var if_touch_arm2 = false
     private var if_touch_stomach = false
@@ -39,13 +38,8 @@ class OpenWorldGame(game : GameK) : ScreenK(game) {
     private var if_touch_leg2 = false
     //gameplay vars
     // Энергетик
-    private var energ = Wood.Fruit(-15, 0f)
+    private var energ = Wood.Energ(-15, 0f)
     private var if_energ_touch = false
-    private var energ_boost = 1.0f
-    private var energ_dead_time_const = 60
-    private var energ_dead_time = 0
-    private var energ_timer_const = 15
-    private var energ_timer = 0
     //main hero vars
     private val hero = Hero()
     var diff = 1.0f
@@ -56,7 +50,7 @@ class OpenWorldGame(game : GameK) : ScreenK(game) {
     private var dropWoodFruits = mutableListOf<Wood.Fruit>() // 1 состояние
     private var navigateFruits = mutableListOf<Wood.Fruit>() // 2 состояние
     private var endFruits = mutableListOf<Wood.Fruit>() // 3 состояние
-    private var mainWood = Wood(0, diff)
+    private var mainWood = Wood(1, diff)
     private var mainWoodFruits = mutableListOf<Wood.Fruit>()
     private var ifTouch = false
     private var secondWood = Wood(1, diff)
@@ -67,26 +61,40 @@ class OpenWorldGame(game : GameK) : ScreenK(game) {
     // переменные для тряски дерева. сохраняют количество пикселов, на которое сдвинется дерево
     var move_x = mutableListOf<Int>()
     var move_y = mutableListOf<Int>()
-    // bg облака и солнце
+    // bg облока и солнце
     private var clouds = mutableListOf<Cloud>()
     private var sun = Sun()
 
     init {
+        // Загружается prefs переменная
+        SettingsK.init_prefs(game as AndroidGameK)
+        // Загружаются сохранения
+        var list = SettingsK.load_save(hero, mainWood, secondWood, energ)
+        // распределяются переменные: сложность, количество фруктов
+        diff = list[0]
+        addFruits(mainWoodFruits, mainWood, list[1].toInt())
+        // Масштабирование фруктов
+        mainWoodFruits.forEach {
+            it.x_original = it.x - (70 + ((it.x-730)*5.66f).toInt())
+            it.y_original = it.y - (250 + ((it.y-710)*5.69f).toInt())
+        }
+        addFruits(secondWoodFruits, secondWood, list[2].toInt())
+        // Если тайминг энергетика > 0, то очищаем его
+         if (energ.energ_dead_time > 0) {
+             energ.exp = 0
+             energ.x = -500
+             energ.y = -500
+         }
         // включается музыка
         AssetsK.SaS_RibbitKing.mediaPlayer.setVolume(SettingsK.volume, SettingsK.volume)
         AssetsK.SaS_RibbitKing.play()
-
-        //main x70y250w600h660 second x630y710w106h116
-        //main x70+(57-566)y250+(57-341)w32h32 second x630+(10-100)y710+(10-60)w7h7
-
-        addFruits(mainWoodFruits, mainWood)
-        mainWoodFruits.forEach {
-
-        }
-        mainWood.x = 70
-        mainWood.y = 250
-        mainWood.width = 600
-        mainWood.height = 660
+        // генерируется 2 облока
+        clouds.add(Cloud(1))
+        clouds.add(Cloud(3))
+        clouds.first().x = 400 + (Math.random()*400).toInt()
+        clouds.last().x = 400 + (Math.random()*400).toInt()
+        // debug окно
+        SettingsK.if_draw_debug_info = true
     }
 
     override fun update(deltaTime: Float) {
@@ -105,13 +113,6 @@ class OpenWorldGame(game : GameK) : ScreenK(game) {
                 fps_temp = 0
                 dfps = dfps_temp
                 dfps_temp = 0
-                // timer нужен для автосейвов, но пока что ничего не сохраняется, см SettingsK
-                timer--
-                if (timer == 0) {
-                    SettingsK.write_data()
-                    SettingsK.write_save(game.fileIO)
-                    timer = 10
-                }
                 // проверка анимации персонажа относительно наличия фруктов в определенном состоянии
                 if (dropWoodFruits.size > 0 || navigateFruits.size > 0) {
                     hero.animation.animations[1].playing = true
@@ -125,12 +126,12 @@ class OpenWorldGame(game : GameK) : ScreenK(game) {
                 }
 
                 // Уменьшение таймеров энергетика
-                if (energ_dead_time > 0) {
-                    energ_dead_time--
+                if (energ.energ_dead_time > 0) {
+                    energ.energ_dead_time--
                     // Если таймер смерти энергетика кончился, то восстанавливаем энергетик
-                    if (energ_dead_time == 0) energ = Wood.Fruit(-15,0f)
+                    if (energ.energ_dead_time == 0) energ = Wood.Energ(-15,0f)
                 }
-                if (energ_timer > 0) energ_timer--
+                if (energ.energ_timer > 0) energ.energ_timer--
 
                 // генерация облаков
                 if (Math.random()>0.75) {
@@ -168,10 +169,10 @@ class OpenWorldGame(game : GameK) : ScreenK(game) {
                     //проверяем здоровье main wood
                     checkHP()
 
-                    //это для звука фруктов: каждые 0.3 секунд проигрывается звук хруста
+                    //это для звука фруктов: каждые 0.4 секунд проигрывается звук хруста
                     // т.к. звуков несколько, они проигрываются наугад
                     if (hero.animation.animations[2].playing) {
-                        if (currTime - stTime > 0.3) {
+                        if (currTime - stTime > 0.4) {
                             currTime = System.nanoTime() / 1000000000.0f
                             stTime = currTime
                             if (Math.random() > 0.5) {
@@ -205,8 +206,9 @@ class OpenWorldGame(game : GameK) : ScreenK(game) {
             g.drawText("ups:" + fps.toString(),50f, 50f, 50f, Color.BLACK)
             g.drawText("fps:" + dfps.toString(), 50f, 150f, 50f, Color.BLACK)
             g.drawText("dmg:" + hero.damage, 50f, 250f, 50f, Color.BLACK)
-            g.drawText("hp:" + mainWood.HP + "/" + mainWood.maxHP, 50f, 350f, 50f, Color.BLACK)
-            g.drawText("energ:" + energ_timer + "/" + energ_dead_time, 50f, 450f, 50f, Color.BLACK)
+            g.drawText("hp:" + mainWood.HP + "/" + mainWood.HP_step, 50f, 350f, 50f, Color.BLACK)
+            g.drawText("energ:" + energ.energ_timer + "/" + energ.energ_dead_time, 50f, 450f, 50f, Color.BLACK)
+            g.drawText("diff:" + diff, 50f, 550f, 50f, Color.BLACK)
         }
     }
 
@@ -264,7 +266,7 @@ class OpenWorldGame(game : GameK) : ScreenK(game) {
         //draw energ
         g.drawPixmap(energ.image, energ.x, energ.y, energ.width, energ.height, energ.srcX, energ.srcY, energ.srcWidth, energ.srcHeight)
         // draw x2 energ bonus
-        if (energ_timer > 0) g.drawPixmap(AssetsK.x2, 50, 150, 249, 177, 0, 0, 249, 177)
+        if (energ.energ_timer > 0) g.drawPixmap(AssetsK.x2, 50, 150, 249, 177, 0, 0, 249, 177)
         //draw text
         //exp
         g.drawText(hero.kcal.toString() + " kcal", 250f, 150f, 100f, Color.YELLOW)
@@ -289,11 +291,22 @@ class OpenWorldGame(game : GameK) : ScreenK(game) {
     fun drawSkills(g : GraphicsK) {
         g.drawPixmap(AssetsK.skills, 0, 0, 721, 1280)
         g.drawText(hero.kcal.toString() + " kcal", 250f, 150f, 100f, Color.YELLOW)
+        g.drawText("Damage: " + hero.damage, 250f, 250f, 100f, Color.YELLOW)
         g.drawText(hero.arm1.toString(), 60f, 313f, 50f, Color.YELLOW)
         g.drawText(hero.arm2.toString(), 488f, 313f, 50f, Color.YELLOW)
         g.drawText(hero.stomach.toString(), 275f, 515f, 50f, Color.YELLOW)
         g.drawText(hero.leg1.toString(), 60f, 680f, 50f, Color.YELLOW)
         g.drawText(hero.leg2.toString(), 488f, 680f, 50f, Color.YELLOW)
+        g.drawText(hero.arm1_cost.toString(), 60f, 473f, 50f, Color.YELLOW)
+        g.drawText(hero.arm2_cost.toString(), 488f, 473f, 50f, Color.YELLOW)
+        g.drawText(hero.stomach_cost.toString(), 275f, 675f, 50f, Color.YELLOW)
+        g.drawText(hero.leg1_cost.toString(), 60f, 840f, 50f, Color.YELLOW)
+        g.drawText(hero.leg2_cost.toString(), 488f, 840f, 50f, Color.YELLOW)
+        g.drawText("+" + hero.arm1_buff.toString(), 60f, 393f, 50f, Color.YELLOW)
+        g.drawText("+" + hero.arm2_buff.toString(), 488f, 393f, 50f, Color.YELLOW)
+        g.drawText("+" + hero.stomach_buff.toString(), 275f, 595f, 50f, Color.YELLOW)
+        g.drawText("+" + hero.leg1_buff.toString(), 60f, 760f, 50f, Color.YELLOW)
+        g.drawText("+" + hero.leg2_buff.toString(), 488f, 760f, 50f, Color.YELLOW)
         //draw hero
         for (i in 0..2)
             if (hero.animation.animations[i].playing) {
@@ -353,9 +366,9 @@ class OpenWorldGame(game : GameK) : ScreenK(game) {
                     }
                     // touch up energ
                     if (if_energ_touch) if (SupportK.inBounds(touch, energ.x, energ.y, energ.width, energ.height)) {
-                            if (energ_timer == 0) {
-                                energ_dead_time = energ_dead_time_const
-                                energ_timer = energ_timer_const
+                            if (energ.energ_timer == 0) {
+                                energ.energ_dead_time = energ.energ_dead_time_const
+                                energ.energ_timer = energ.energ_timer_const
                                 AssetsK.soda.play(SettingsK.sound_volume)
 
                                 energ.image = energ.image2
@@ -408,6 +421,10 @@ class OpenWorldGame(game : GameK) : ScreenK(game) {
                     if (SupportK.inBounds(touch, 290, 271, 146, 167)) {
                         if_touch_music = true
                     }
+                    //language
+                    if (SupportK.inBounds(touch, 450, 298, 148, 128)) {
+                        if_touch_language = true
+                    }
                 }
                 touch.TOUCH_UP -> {
                     //close
@@ -441,10 +458,15 @@ class OpenWorldGame(game : GameK) : ScreenK(game) {
                         }
                         AssetsK.SaS_RibbitKing.mediaPlayer.setVolume(SettingsK.volume, SettingsK.volume)
                     }
+                    //language
+                    if (SupportK.inBounds(touch, 450, 298, 148, 128)) {
+                        SettingsK.delete_save()
+                    }
                     if_touch_close = false
                     if_touch_b_skills = false
                     if_touch_sound = false
                     if_touch_music = false
+                    if_touch_language = false
                 }
             }
         }
@@ -485,10 +507,12 @@ class OpenWorldGame(game : GameK) : ScreenK(game) {
                 touch.TOUCH_UP -> {
                     //arm1
                     if (SupportK.inBounds(touch, 50, 280, 185, 200)) {
-                        if (hero.kcal > 999) {
-                            hero.kcal -= 1000
+                        if (hero.kcal >= hero.arm1_cost) {
+                            hero.kcal -= hero.arm1_cost
                             hero.arm1++
-                            hero.damage++
+                            hero.arm1_cost *= 2
+                            hero.damage += hero.arm1_buff
+                            hero.arm1_buff += 2
                             if (Math.random()*2 > 1.0) {
                                 AssetsK.pop1.play(SettingsK.sound_volume)
                             }else {
@@ -498,10 +522,12 @@ class OpenWorldGame(game : GameK) : ScreenK(game) {
                     }
                     //arm2
                     if (SupportK.inBounds(touch, 480, 280, 185, 200)) {
-                        if (hero.kcal > 999) {
-                            hero.kcal -= 1000
+                        if (hero.kcal >= hero.arm2_cost) {
+                            hero.kcal -= hero.arm2_cost
                             hero.arm2++
-                            hero.damage++
+                            hero.arm2_cost *= 2
+                            hero.damage += hero.arm2_buff
+                            hero.arm2_buff += 2
                             if (Math.random()*2 > 1.0) {
                                 AssetsK.pop1.play(SettingsK.sound_volume)
                             }else {
@@ -511,10 +537,12 @@ class OpenWorldGame(game : GameK) : ScreenK(game) {
                     }
                     //stomach
                     if (SupportK.inBounds(touch, 265, 481, 185, 200)) {
-                        if (hero.kcal > 2999) {
-                            hero.kcal -= 3000
+                        if (hero.kcal >= hero.stomach_cost) {
+                            hero.kcal -= hero.stomach_cost
                             hero.stomach++
-                            hero.damage += 5
+                            hero.stomach_cost *= 2
+                            hero.damage += hero.stomach_buff
+                            hero.stomach_buff += 15
                             if (Math.random()*2 > 1.0) {
                                 AssetsK.pop1.play(SettingsK.sound_volume)
                             }else {
@@ -524,10 +552,12 @@ class OpenWorldGame(game : GameK) : ScreenK(game) {
                     }
                     //leg1
                     if (SupportK.inBounds(touch, 50, 646, 185, 200)) {
-                        if (hero.kcal > 1499) {
-                            hero.kcal -= 1500
+                        if (hero.kcal >= hero.leg1_cost) {
+                            hero.kcal -= hero.leg1_cost
                             hero.leg1++
-                            hero.damage += 3
+                            hero.leg1_cost *= 2
+                            hero.damage += hero.leg1_buff
+                            hero.leg1_buff += 6
                             if (Math.random()*2 > 1.0) {
                                 AssetsK.pop1.play(SettingsK.sound_volume)
                             }else {
@@ -537,10 +567,12 @@ class OpenWorldGame(game : GameK) : ScreenK(game) {
                     }
                     //leg2
                     if (SupportK.inBounds(touch, 480, 646, 185, 200)) {
-                        if (hero.kcal > 1499) {
-                            hero.kcal -= 1500
+                        if (hero.kcal >= hero.leg2_cost) {
+                            hero.kcal -= hero.leg2_cost
                             hero.leg2++
-                            hero.damage += 3
+                            hero.leg2_cost *= 2
+                            hero.damage += hero.leg2_buff
+                            hero.leg2_buff += 6
                             if (Math.random()*2 > 1.0) {
                                 AssetsK.pop1.play(SettingsK.sound_volume)
                             }else {
@@ -570,21 +602,11 @@ class OpenWorldGame(game : GameK) : ScreenK(game) {
 
     // дерево получает урон
     private fun damage() {
-        // С вероятностью 20% падает один фрукт(первый в списке)
-        if (Math.random()*10 < 2) {
-            var t = mainWoodFruits.first()
-            t.ifDrop = true
-            t.vectorX = (-5 + Math.random()*10).toFloat()/4
-            t.vectorY = (3 + Math.random()*7).toFloat()/4
-            dropWoodFruits.add(t)
-            hero.kcal += t.exp
-            mainWoodFruits.removeAt(0)
-        }
         // Уменьшает хп
         mainWood.HP = mainWood.HP - hero.damage
         // Пока таймер энергетика больше
-        if (energ_timer > 0) {
-            mainWood.HP = mainWood.HP - (hero.damage*energ_boost).toInt()
+        if (energ.energ_timer > 0) {
+            mainWood.HP = mainWood.HP - (hero.damage*energ.energ_boost).toInt()
         }
         // проигрываем случайный звук
         if (Math.random() > 0.5) {
@@ -595,6 +617,15 @@ class OpenWorldGame(game : GameK) : ScreenK(game) {
     }
 
     private fun checkHP() {
+        if (mainWood.HP < mainWood.HP_step*(mainWoodFruits.size-1)) {
+            var t = mainWoodFruits.first()
+            t.ifDrop = true
+            t.vectorX = (-5 + Math.random()*10).toFloat()/4
+            t.vectorY = (3 + Math.random()*7).toFloat()/4
+            dropWoodFruits.add(t)
+            hero.kcal += t.exp
+            mainWoodFruits.removeAt(0)
+        }
         // Если кончилось HP или фрукты, то ...
         if (mainWood.HP < 1 || mainWoodFruits.size == 0) {
             diff += 0.05f
@@ -663,14 +694,28 @@ class OpenWorldGame(game : GameK) : ScreenK(game) {
                 mainWood.y -= 10
                 mainWood.width += 4
                 mainWood.height += 4
+                // делаем сейв
+                SettingsK.write_save(hero, diff, mainWood, secondWood, mainWoodFruits.size, secondWoodFruits.size, energ)
             }
         }
     }
 
     private fun addFruits(list : MutableList<Wood.Fruit>, wood : Wood) {
         // добавляет фрукты в список list
-        val count = ((5+Math.random()*15)*diff).toInt()
+        val count = (5+Math.random()*15).toInt()
         for (i in 0..count) {
+            list.add(Wood.Fruit(wood.ID, diff))
+            list.get(list.lastIndex).let {
+                it.x = 740 + (Math.random()*85).toInt()
+                it.y = 730 + (Math.random()*45).toInt()
+            }
+        }
+        wood.HP_step = wood.HP / count
+    }
+
+    private fun addFruits(list : MutableList<Wood.Fruit>, wood : Wood, count : Int) {
+        // добавляет фрукты в список list
+        for (i in 0..count-1) {
             list.add(Wood.Fruit(wood.ID, diff))
             list.get(list.lastIndex).let {
                 it.x = 740 + (Math.random()*85).toInt()
@@ -713,7 +758,7 @@ class OpenWorldGame(game : GameK) : ScreenK(game) {
             if (it.x > 800)  {
                 dropWoodFruits.remove(it)
                 i--
-            }
+            }else
             if (it.y > 920) {
                 it.vectorY = 1.25f
                 it.vectorX = (360 - it.x)/170f
@@ -743,7 +788,7 @@ class OpenWorldGame(game : GameK) : ScreenK(game) {
             if (it.x > 800)  {
                 navigateFruits.remove(it)
                 i--
-            }
+            }else
             if (it.y > 1140) {
                 endFruits.add(it)
                 it.vectorY = 1.6f

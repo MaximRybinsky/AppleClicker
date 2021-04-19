@@ -1,8 +1,8 @@
 package com.example.primaryengine
 
-class Wood (val ID : Int, diff : Float) : Drawing_object() {
-    var HP = ((1+Math.random()*4)*diff).toInt()
-    var maxHP = 0
+class Wood (var ID : Int, diff : Float) : Drawing_object() {
+    var HP = ((4+Math.random()*10)*diff).toInt()
+    var HP_step = 0
 
     init {
         image = AssetsK.tree
@@ -27,11 +27,10 @@ class Wood (val ID : Int, diff : Float) : Drawing_object() {
                 srcHeight = 638
             }
         }
-        maxHP = HP
     }
 
-    class Fruit (ID : Int, diff : Float) : Drawing_object() {
-        var exp = diff.toInt()/2 + 10
+    open class Fruit (ID : Int, diff : Float) : Drawing_object() {
+        var exp = (diff.toInt()*2.2 + 10).toInt()
         var image2 = AssetsK.oneEmptyPixel // погрызан
         var ifDrop = false
         var vectorX = 0.0f
@@ -56,7 +55,20 @@ class Wood (val ID : Int, diff : Float) : Drawing_object() {
                     srcWidth = 94
                     srcHeight = 139
                 }
-                // Энергетик
+            }
+        }
+
+    }
+
+    class Energ(ID: Int, diff: Float) : Fruit(ID, diff) {
+        var energ_boost = 1.0f
+        var energ_dead_time_const = 60
+        var energ_dead_time = 0
+        var energ_timer_const = 15
+        var energ_timer = 0
+
+        init {
+            when(ID) {
                 -15 -> {
                     image = AssetsK.redBull
                     image2 = AssetsK.redBull_off
@@ -70,7 +82,6 @@ class Wood (val ID : Int, diff : Float) : Drawing_object() {
                 }
             }
         }
-
     }
 }
 
