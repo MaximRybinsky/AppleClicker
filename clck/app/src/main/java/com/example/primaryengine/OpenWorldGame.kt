@@ -650,7 +650,7 @@ class OpenWorldGame(game : GameK) : ScreenK(game) {
                 it.x_original = it.x - (oldWood.x + ((it.x-730)*5.66f).toInt())
                 it.y_original = it.y - (oldWood.y + ((it.y-710)*5.69f).toInt())
             }
-            var id = (1+Math.random()*2).toInt()
+            var id = (1+Math.random()*6).toInt()
             secondWood = Wood(id, diff)
             secondWoodFruits.clear()
             addFruits(secondWoodFruits, secondWood)
