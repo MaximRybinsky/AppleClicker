@@ -41,6 +41,21 @@ companion object {
     lateinit var redBull : PixmapK // 30
     lateinit var redBull_off : PixmapK // 31
     lateinit var x2 : PixmapK // 32
+    //М. добавил новые фрукты и деревья
+    lateinit var cherry : PixmapK // 33
+    lateinit var cherry_stub : PixmapK // 34
+    lateinit var orange : PixmapK // 35
+    lateinit var orange_stub : PixmapK // 36
+    lateinit var peach : PixmapK // 37
+    lateinit var peach_stub : PixmapK // 38
+    lateinit var plum : PixmapK // 39
+    lateinit var plum_stub : PixmapK // 40
+    lateinit var tree_cherry : PixmapK // 41
+    lateinit var tree_orange : PixmapK // 42
+    lateinit var tree_peach : PixmapK // 43
+    lateinit var tree_plum : PixmapK // 44
+    lateinit var tree_pear : PixmapK // 45
+
 
     lateinit var goethe : Typeface
 
@@ -88,6 +103,19 @@ companion object {
             29 -> b_language
             30 -> redBull
             31 -> redBull_off
+            33 -> cherry
+            34 -> cherry_stub
+            35 -> orange
+            36 -> orange_stub
+            37 -> peach
+            38 -> peach_stub
+            39 -> plum
+            40 -> plum_stub
+            41 -> tree_cherry
+            42 -> tree_orange
+            43 -> tree_peach
+            44 -> tree_plum
+            45 -> tree_pear
             else -> oneEmptyPixel
         }
     }

@@ -5,7 +5,6 @@ class Wood (var ID : Int, diff : Float) : Drawing_object() {
     var HP_step = 0
 
     init {
-        image = AssetsK.tree
         y = 710
         y_original=y
         x = 730
@@ -17,12 +16,38 @@ class Wood (var ID : Int, diff : Float) : Drawing_object() {
                 HP = 0
             }
             1 -> {
-                HP *= 4
+                image = AssetsK.tree
+                HP *= 2
                 srcWidth = 544
                 srcHeight = 638
             }
             2 -> {
-                HP *= 9
+                image = AssetsK.tree_pear
+                HP *= 2
+                srcWidth = 544
+                srcHeight = 638
+            }
+            3 -> {
+                image = AssetsK.tree_cherry
+                HP *= 2
+                srcWidth = 544
+                srcHeight = 638
+            }
+            4 -> {
+                image = AssetsK.tree_orange
+                HP *= 2
+                srcWidth = 544
+                srcHeight = 638
+            }
+            5 -> {
+                image = AssetsK.tree_peach
+                HP *= 2
+                srcWidth = 544
+                srcHeight = 638
+            }
+            6 -> {
+                image = AssetsK.tree_plum
+                HP *= 2
                 srcWidth = 544
                 srcHeight = 638
             }
@@ -44,14 +69,42 @@ class Wood (var ID : Int, diff : Float) : Drawing_object() {
                 1 -> {
                     image = AssetsK.apple
                     image2 = AssetsK.apple_stub
-                    exp += 1
+                    exp += 50
                     srcWidth = 96
                     srcHeight = 117
                 }
                 2 -> {
                     image = AssetsK.pear
                     image2 = AssetsK.pear_stub
-                    exp += 3
+                    exp += 50
+                    srcWidth = 94
+                    srcHeight = 139
+                }
+                3 -> {
+                    image = AssetsK.cherry
+                    image2 = AssetsK.cherry_stub
+                    exp += 50
+                    srcWidth = 94
+                    srcHeight = 139
+                }
+                4 -> {
+                    image = AssetsK.orange
+                    image2 = AssetsK.orange_stub
+                    exp += 50
+                    srcWidth = 94
+                    srcHeight = 139
+                }
+                5 -> {
+                    image = AssetsK.peach
+                    image2 = AssetsK.peach_stub
+                    exp += 50
+                    srcWidth = 94
+                    srcHeight = 139
+                }
+                6 -> {
+                    image = AssetsK.plum
+                    image2 = AssetsK.plum_stub
+                    exp += 50
                     srcWidth = 94
                     srcHeight = 139
                 }
