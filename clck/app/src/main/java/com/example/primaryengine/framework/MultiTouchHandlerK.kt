@@ -7,11 +7,11 @@ import com.example.primaryengine.framework.InputK.TouchEvent
 class MultiTouchHandlerK(val view : View, val scaleX : Float, val scaleY : Float) : TouchHandlerK {
     // "Держатель многих нажатий". Класс, экземпляр которого, обрабатывает нажатия на экран.
     // Это делается с помощью многих переменных и наследования от TouchHandlerK(Который наследуется от View.OnTouchListener)
-    var isTouched : BooleanArray = booleanArrayOf(false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false)
+    var isTouched : BooleanArray = booleanArrayOf(false,false,false,false,false)
     // переменная isTouched - это массив boolean. По-моему там 20 элементов.
     // Каждому нажатию соответствует порядковый номер.
-    var touchX : IntArray = intArrayOf(0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0)
-    var touchY : IntArray = intArrayOf(0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0)
+    var touchX : IntArray = intArrayOf(0,0,0,0,0)
+    var touchY : IntArray = intArrayOf(0,0,0,0,0)
     // переменные touchX и touchY хранят информацию о координатах нажатия
     var touchEventPool : PoolK<TouchEvent>
     // переменная выше отвечает за генерацию и взаимодействие с переменными нажатий TouchEvent
@@ -30,27 +30,27 @@ class MultiTouchHandlerK(val view : View, val scaleX : Float, val scaleY : Float
             }
         } // factory - экземпляр анонимного класса, который наследуется от PoolK.PoolObjectFactory и переписывает функцию createObject
           // чтобы возвращать нужный объект класса  TouchEvent
-        touchEventPool = PoolK(factory, 100) // инициализировали Pool
+        touchEventPool = PoolK(factory, 5) // инициализировали Pool
         view.setOnTouchListener(this) // установили touchListener на текущую активность
     }
 
     override fun isTouchDown(pointer: Int): Boolean { // Возвращаем boolean значение нажатия
         synchronized(this) {
-            if (pointer in 0..19) return isTouched[pointer]  // То есть, есть ли нажатие или нет
+            if (pointer in 0..4) return isTouched[pointer]  // То есть, есть ли нажатие или нет
             return false
         }
     }
 
     override fun getTouchX(pointer: Int): Int { // Возвращаем координату Х нажатия
         synchronized(this) {
-            if (pointer in 0..19) return touchX[pointer]
+            if (pointer in 0..4) return touchX[pointer]
             return 0
         }
     }
 
     override fun getTouchY(pointer: Int): Int { // Возвращаем координату Y нажатия
         synchronized(this) {
-            if (pointer in 0..19) return touchY[pointer]
+            if (pointer in 0..4) return touchY[pointer]
             return 0
         }
     }

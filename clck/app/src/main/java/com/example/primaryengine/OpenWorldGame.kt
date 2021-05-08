@@ -87,6 +87,7 @@ class OpenWorldGame(game : GameK) : ScreenK(game) {
          }
         // включается музыка
         AssetsK.SaS_RibbitKing.mediaPlayer.setVolume(SettingsK.volume, SettingsK.volume)
+        AssetsK.SaS_RibbitKing.mediaPlayer.isLooping = true
         AssetsK.SaS_RibbitKing.play()
         // генерируется 2 облока
         clouds.add(Cloud(1))
@@ -95,6 +96,7 @@ class OpenWorldGame(game : GameK) : ScreenK(game) {
         clouds.last().x = 400 + (Math.random()*400).toInt()
         // debug окно
         SettingsK.if_draw_debug_info = true
+        SettingsK.delete_save()
     }
 
     override fun update(deltaTime: Float) {
@@ -195,10 +197,10 @@ class OpenWorldGame(game : GameK) : ScreenK(game) {
         //init graphic variable
         val g : GraphicsK = game.graphics
 
-        // 3 функции отрисовки для 3 состояний окна: игра, настройки, скиллы
-        drawMain(g)
-        if (if_settings_open) drawSettings(g)
+        // 3 функции отрисовки для 3 состояний окна
         if (if_skills_open) drawSkills(g)
+        else if (if_settings_open) drawSettings(g)
+        else drawMain(g)
 
 
         //debug_info
@@ -214,21 +216,15 @@ class OpenWorldGame(game : GameK) : ScreenK(game) {
 
     fun drawMain(g : GraphicsK) {
         //draw bg
-        g.drawPixmap(AssetsK.background, 0,0,721,1281, 0, 0, 800, 1280)
+        g.drawPixmap(AssetsK.background, 0,0)
         //draw sun
         g.drawPixmap(sun.image, sun.x, sun.y, sun.width, sun.height, sun.srcX, sun.srcY, sun.srcWidth, sun.srcHeight, sun.angle, sun.alpha)
         //draw clouds
         for (cloud in clouds) {
-            g.drawPixmap(cloud.image, cloud.x, cloud.y, cloud.width, cloud.height, cloud.srcX, cloud.srcY, cloud.srcWidth, cloud.srcHeight, cloud.alpha)
-        }
-        //draw second wood
-        g.drawPixmap(secondWood.image, secondWood.x, secondWood.y, secondWood.width, secondWood.height, secondWood.srcX, secondWood.srcY, secondWood.srcWidth, secondWood.srcHeight, secondWood.alpha)
-        //draw second wood fruits
-        for (fruit in secondWoodFruits) {
-            g.drawPixmap(fruit.image, fruit.x, fruit.y, fruit.width, fruit.height, fruit.srcX, fruit.srcY, fruit.srcWidth, fruit.srcHeight, fruit.alpha)
+            g.drawPixmap(cloud.image, cloud.x, cloud.y, cloud.width, cloud.height)
         }
         //draw main wood
-        g.drawPixmap(mainWood.image, mainWood.x, mainWood.y, mainWood.width, mainWood.height, mainWood.srcX, mainWood.srcY, mainWood.srcWidth, mainWood.srcHeight, mainWood.alpha)
+        g.drawPixmap(mainWood.image, mainWood.x, mainWood.y, mainWood.width, mainWood.height)
         //draw hero
         // проверяется каждая анимация: идет анимация или нет. Если одна анимация воспроизводится, остальные рисоваться не будут из-за break
         // анимации работают в приоритете их первичности в списке (0 - первая, наивысший приоритет, 1 - вторая), см Hero, animations
@@ -243,19 +239,19 @@ class OpenWorldGame(game : GameK) : ScreenK(game) {
         }
         //draw main wood fruits
         for (fruit in mainWoodFruits) {
-            g.drawPixmap(fruit.image, fruit.x, fruit.y, fruit.width, fruit.height, fruit.srcX, fruit.srcY, fruit.srcWidth, fruit.srcHeight, fruit.alpha)
+            g.drawPixmap(fruit.image, fruit.x, fruit.y, fruit.width, fruit.height)
         }
         //draw old wood
-        g.drawPixmap(oldWood.image, oldWood.x, oldWood.y, oldWood.width, oldWood.height, oldWood.srcX, oldWood.srcY, oldWood.srcWidth, oldWood.srcHeight, oldWood.alpha)
+        g.drawPixmap(oldWood.image, oldWood.x, oldWood.y, oldWood.width, oldWood.height)
         //draw old wood fruits
         for (fruit in dropWoodFruits) {
-            g.drawPixmap(fruit.image, fruit.x, fruit.y, fruit.width, fruit.height, fruit.srcX, fruit.srcY, fruit.srcWidth, fruit.srcHeight, fruit.alpha)
+            g.drawPixmap(fruit.image, fruit.x, fruit.y, fruit.width, fruit.height)
         }
         for (fruit in navigateFruits) {
-            g.drawPixmap(fruit.image, fruit.x, fruit.y, fruit.width, fruit.height, fruit.srcX, fruit.srcY, fruit.srcWidth, fruit.srcHeight, fruit.alpha)
+            g.drawPixmap(fruit.image, fruit.x, fruit.y, fruit.width, fruit.height)
         }
         for (fruit in endFruits) {
-            g.drawPixmap(fruit.image2, fruit.x, fruit.y, fruit.width, fruit.height, fruit.srcX, fruit.srcY, fruit.srcWidth, fruit.srcHeight, fruit.alpha)
+            g.drawPixmap(fruit.image2, fruit.x, fruit.y, fruit.width, fruit.height)
         }
         //draw settings button
         if (!if_settings_open) {
@@ -264,7 +260,7 @@ class OpenWorldGame(game : GameK) : ScreenK(game) {
             g.drawPixmap(AssetsK.b_settings_off, 50, 1020, 177, 164)
         }
         //draw energ
-        g.drawPixmap(energ.image, energ.x, energ.y, energ.width, energ.height, energ.srcX, energ.srcY, energ.srcWidth, energ.srcHeight)
+        g.drawPixmap(energ.image, energ.x, energ.y, energ.width, energ.height)
         // draw x2 energ bonus
         if (energ.energ_timer > 0) g.drawPixmap(AssetsK.x2, 50, 150, 249, 177, 0, 0, 249, 177)
         //draw text
@@ -617,7 +613,7 @@ class OpenWorldGame(game : GameK) : ScreenK(game) {
     }
 
     private fun checkHP() {
-        if (mainWood.HP < mainWood.HP_step*(mainWoodFruits.size-1)) {
+        if (mainWood.HP < mainWood.HP_step*(mainWoodFruits.size-1) && mainWoodFruits.size>0) {
             var t = mainWoodFruits.first()
             t.ifDrop = true
             t.vectorX = (-5 + Math.random()*10).toFloat()/4
@@ -690,7 +686,6 @@ class OpenWorldGame(game : GameK) : ScreenK(game) {
             frame_of_change_wood--
 
             if (frame_of_change_wood == 0) {
-                oldWood.alpha -= 5
                 mainWood.y -= 10
                 mainWood.width += 4
                 mainWood.height += 4

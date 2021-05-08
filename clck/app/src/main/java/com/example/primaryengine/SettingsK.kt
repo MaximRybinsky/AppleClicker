@@ -29,7 +29,7 @@ class SettingsK {
             // Загружаем настройки
             volume = prefs.getFloat("volume", 1f)
             sound_volume = prefs.getFloat("sound_volume", 1f)
-            if_draw_debug_info = prefs.getBoolean("if_draw_debug_info", false)
+//            if_draw_debug_info = prefs.getBoolean("if_draw_debug_info", false)
             fps = prefs.getFloat("fps", 100f)
             // Загружаем героя
             hero.damage = prefs.getInt("damage", 1)
@@ -85,7 +85,7 @@ class SettingsK {
             // Сохраняем настройки
             edit.putFloat("volume", volume)
             edit.putFloat("sound_volume", sound_volume)
-            edit.putBoolean("if_draw_debug_info", if_draw_debug_info)
+//            edit.putBoolean("if_draw_debug_info", if_draw_debug_info)
             edit.putFloat("fps", fps)
             // Сохраняем героя
             edit.putInt("damage", hero.damage)
@@ -142,5 +142,6 @@ class SettingsK {
             edit.clear()
             edit.apply()
         }
+
     }
 }

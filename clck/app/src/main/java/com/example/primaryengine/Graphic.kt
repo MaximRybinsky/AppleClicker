@@ -11,11 +11,6 @@ open abstract class Drawing_object {
     open var x_original : Int = 0
     open var width : Int = 0
     open var height : Int = 0
-    open var srcX : Int = 0
-    open var srcY : Int = 0
-    open var srcWidth : Int = 0
-    open var srcHeight : Int = 0
-    open var alpha : Int = 255
 }
 
 open class Animation {
@@ -56,10 +51,4 @@ class Frame(var image : PixmapK) {
         frames.add(Image(count_of_images - 1, _srcX, _srcY, _srcWidth, _srcHeight, _frames_for_image))
         count_of_frames = count_of_frames + _frames_for_image
     }
-}
-
-class SpritesDsts {
-    val mainSpriteImage = AssetsK.mainSprite
-    val mainSprite = mutableListOf(mutableListOf(0, 0, 160, 180),//apple
-        mutableListOf(160, 0, 160, 180))//aplecot
 }

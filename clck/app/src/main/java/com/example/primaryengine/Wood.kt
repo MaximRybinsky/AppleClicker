@@ -18,38 +18,26 @@ class Wood (var ID : Int, diff : Float) : Drawing_object() {
             1 -> {
                 image = AssetsK.tree
                 HP *= 2
-                srcWidth = 544
-                srcHeight = 638
             }
             2 -> {
                 image = AssetsK.tree_pear
                 HP *= 2
-                srcWidth = 544
-                srcHeight = 638
             }
             3 -> {
                 image = AssetsK.tree_cherry
                 HP *= 2
-                srcWidth = 544
-                srcHeight = 638
             }
             4 -> {
                 image = AssetsK.tree_orange
                 HP *= 2
-                srcWidth = 544
-                srcHeight = 638
             }
             5 -> {
                 image = AssetsK.tree_peach
                 HP *= 2
-                srcWidth = 544
-                srcHeight = 638
             }
             6 -> {
                 image = AssetsK.tree_plum
                 HP *= 2
-                srcWidth = 544
-                srcHeight = 638
             }
         }
     }
@@ -70,43 +58,31 @@ class Wood (var ID : Int, diff : Float) : Drawing_object() {
                     image = AssetsK.apple
                     image2 = AssetsK.apple_stub
                     exp += 50
-                    srcWidth = 96
-                    srcHeight = 117
                 }
                 2 -> {
                     image = AssetsK.pear
                     image2 = AssetsK.pear_stub
                     exp += 50
-                    srcWidth = 94
-                    srcHeight = 139
                 }
                 3 -> {
                     image = AssetsK.cherry
                     image2 = AssetsK.cherry_stub
                     exp += 50
-                    srcWidth = 94
-                    srcHeight = 139
                 }
                 4 -> {
                     image = AssetsK.orange
                     image2 = AssetsK.orange_stub
                     exp += 50
-                    srcWidth = 94
-                    srcHeight = 139
                 }
                 5 -> {
                     image = AssetsK.peach
                     image2 = AssetsK.peach_stub
                     exp += 50
-                    srcWidth = 94
-                    srcHeight = 139
                 }
                 6 -> {
                     image = AssetsK.plum
                     image2 = AssetsK.plum_stub
                     exp += 50
-                    srcWidth = 94
-                    srcHeight = 139
                 }
             }
         }
@@ -126,8 +102,6 @@ class Wood (var ID : Int, diff : Float) : Drawing_object() {
                     image = AssetsK.redBull
                     image2 = AssetsK.redBull_off
                     exp = 150
-                    srcWidth = 149
-                    srcHeight = 170
                     x = 550
                     y = 1020
                     width = 149
@@ -146,9 +120,7 @@ class Cloud(ID: Int) : Drawing_object() {
         y = 50 + (Math.random()*300).toInt()
         width = (184.0f*(0.75 + Math.random()*0.5)).toInt()
         height = (88.0f*(0.75 + Math.random()*0.5)).toInt()
-        srcWidth = 184
-        srcHeight = 88
-        speed = 1 + (Math.random()*5).toInt()
+        speed = 1 + (Math.random()*4).toInt()
 
         when (ID) {
             1 -> {
@@ -164,7 +136,12 @@ class Cloud(ID: Int) : Drawing_object() {
     }
 }
 
-class Sun() : Drawing_object() {
+class Sun : Drawing_object() {
+    var srcX : Int = 0
+    var srcY : Int = 0
+    var srcWidth : Int = 0
+    var srcHeight : Int = 0
+    open var alpha : Int = 255
 
     var angle = 0f
 

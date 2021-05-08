@@ -4,6 +4,10 @@ class Hero : Drawing_object() {
     var damage = 1
     var woodsCounter = 0 // счетчик съеденных деревьев
     var kcal = 0 // Опыт
+    var srcX : Int = 0
+    var srcY : Int = 0
+    var srcWidth : Int = 0
+    var srcHeight : Int = 0
 
     var arm1 = 1
     var arm1_cost = 1000

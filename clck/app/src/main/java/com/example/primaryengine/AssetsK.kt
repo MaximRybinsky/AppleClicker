@@ -11,7 +11,6 @@ companion object {
     lateinit var oneEmptyPixel : PixmapK // -1
     lateinit var hero : PixmapK //1
     lateinit var hero_sprite : PixmapK //3 // 0;0   438;0   876;0   1312;0  438x353
-    lateinit var mainSprite : PixmapK //2
     lateinit var apple : PixmapK //4
     lateinit var apple_stub : PixmapK //5
     lateinit var pear : PixmapK //6
@@ -73,7 +72,6 @@ companion object {
         return when(index) {
             -1 -> oneEmptyPixel
             1 -> hero
-            2 -> mainSprite
             3 -> hero_sprite
             4 -> apple
             5 -> apple_stub
